@@ -1,0 +1,33 @@
+---
+title: "FBI Crime Data (2022-02-18)"
+author: "Katherine Zeng"
+date: "2025-02-22"
+output: html_document
+---
+
+# Setup
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+install.packages("tidytuesdayR")
+install.packages("skimr")
+install.packages("DataExplorer")
+```
+
+
+# Libraries
+```{r}
+library(skimr)
+library(DataExplorer)
+```
+
+
+# Load and Clean Dataset
+```{r}
+agencies <- tidytuesdayR::tt_load(2025, week = 7)$agencies
+```
+
+# Initial Exploration
+```{r}
+# DataExplorer::create_report(agencies)
+```
+
