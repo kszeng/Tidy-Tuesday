@@ -6,11 +6,21 @@ output: html_document
 ---
 
 # Setup
-```{r setup, include=FALSE}
+```{r}
+r = getOption("repos")
+r = getOption("repos")
+r["CRAN"] = "http://cran.us.r-project.org"
+options(repos = r)
+```
+
+```{r setup, include=FALSE, results="hide"}
 knitr::opts_chunk$set(echo = TRUE)
 install.packages("tidytuesdayR")
 install.packages("skimr")
 install.packages("DataExplorer")
+install.packages("ggplot2")
+install.packages("ggExtra")
+install.packages("dplyr")
 ```
 
 
@@ -18,6 +28,9 @@ install.packages("DataExplorer")
 ```{r}
 library(skimr)
 library(DataExplorer)
+library(ggplot2)
+library(ggExtra)
+library(dplyr)
 ```
 
 
@@ -29,5 +42,16 @@ agencies <- tidytuesdayR::tt_load(2025, week = 7)$agencies
 # Initial Exploration
 ```{r}
 # DataExplorer::create_report(agencies)
+```
+
+## Bar Plots
+```{r}
+agencies %>% group_by(state) %>% 
+  summarise(count = n()) %>%
+  arrange(desc(count)) %>% 
+  ggplot() + 
+  geom_bar(aes(x = count, y = reorder(state, count)), 
+           width = 0.6,
+           stat = "identity")
 ```
 
