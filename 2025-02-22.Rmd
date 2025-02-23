@@ -5,22 +5,25 @@ date: "2025-02-22"
 output: html_document
 ---
 
-# Setup
-```{r}
-r = getOption("repos")
-r = getOption("repos")
-r["CRAN"] = "http://cran.us.r-project.org"
-options(repos = r)
-```
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      results="hide", 
+                      warning=FALSE, 
+                      message=FALSE)
 
-```{r setup, include=FALSE, results="hide"}
-knitr::opts_chunk$set(echo = TRUE)
-install.packages("tidytuesdayR")
-install.packages("skimr")
-install.packages("DataExplorer")
-install.packages("ggplot2")
-install.packages("ggExtra")
-install.packages("dplyr")
+# r = getOption("repos")
+# r = getOption("repos")
+# r["CRAN"] = "http://cran.us.r-project.org"
+# options(repos = r)
+# 
+# install.packages("tidytuesdayR")
+# install.packages("skimr")
+# install.packages("DataExplorer")
+# install.packages("ggplot2")
+# install.packages("ggExtra")
+# install.packages("dplyr")
+# install.packages("scales")
+# install.packages("ggpubr")
 ```
 
 
@@ -31,6 +34,8 @@ library(DataExplorer)
 library(ggplot2)
 library(ggExtra)
 library(dplyr)
+library(scales)
+library(ggpubr)
 ```
 
 
@@ -46,12 +51,56 @@ agencies <- tidytuesdayR::tt_load(2025, week = 7)$agencies
 
 ## Bar Plots
 ```{r}
-agencies %>% group_by(state) %>% 
-  summarise(count = n()) %>%
-  arrange(desc(count)) %>% 
-  ggplot() + 
-  geom_bar(aes(x = count, y = reorder(state, count)), 
-           width = 0.6,
-           stat = "identity")
+par(mfrow = c(2,1))
+
+lats <- ggplot(agencies, aes(x = latitude)) +
+  geom_histogram(aes(y = ..count..), 
+                 color = "black", 
+                 fill = "white",
+                 bins = 50) +
+  geom_density(aes(y = ..density..),
+               alpha = 0.4, 
+               fill = "#FF6666") +
+  geom_vline(aes(xintercept = mean(latitude, na.rm = TRUE)),
+             color = "blue",
+             linetype = "solid") +
+  labs(title = "Frequency of Latitudes",
+       x = "Latitude",
+       y = "Number of Agencies") +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = "black"),
+        panel.grid.major = element_line(colour = "red")) +
+  scale_x_continuous(limits = c(20, 55))
+
+lats
+
+longs <- ggplot(agencies, aes(x = longitude)) +
+  geom_histogram(aes(y = ..count..),
+                 color = "black", 
+                 fill = "white",
+                 bins = 50) +
+  geom_density(aes(y = ..density..),
+               alpha = 0.4,
+               fill = "#66A1FF") +
+  geom_vline(aes(xintercept = mean(longitude, na.rm = TRUE)),
+             color = "red",
+             linetype = "solid",
+             ) +
+  labs(title = "Frequency of Longitudes",
+       x = "Longitude",
+       y = "Number of Agencies") +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = "black"),
+        panel.grid.major = element_line(colour = "blue")) +
+  scale_x_continuous(limits = c(-130, -60))
+
+longs
+
+ggarrange(lats, longs,
+          labels = c("1)", "2)"),
+          ncol = 2, 
+          nrow = 1)
 ```
+
+## Scatter Plots
 
