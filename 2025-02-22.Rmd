@@ -117,6 +117,7 @@ state_sum <- agencies %>% group_by(state_abbr, is_nibrs) %>%
   summarise(count = n()) %>%
   ungroup() 
   
+# faceted bar graphs showing NIBRS status
 ggplot(data = state_sum_fct, aes(x = reorder(state_abbr, +count), y = count, fill = is_nibrs)) +
   facet_wrap(~is_nibrs, scales = "free_y") +
   geom_bar(stat = "identity") +
@@ -130,6 +131,7 @@ ggplot(data = state_sum_fct, aes(x = reorder(state_abbr, +count), y = count, fil
     fill = "States"
   )
 
+# side by side bars
 ggplot(data = state_sum, aes(x = reorder(state_abbr, +count), y = count, fill = is_nibrs)) +
   geom_bar(position = "dodge",
            stat = "identity") +
@@ -142,6 +144,7 @@ ggplot(data = state_sum, aes(x = reorder(state_abbr, +count), y = count, fill = 
     fill = "States"
   )
 
+# stacked bar
 ggplot(data = state_sum, aes(x = reorder(state_abbr, +count), y = count, fill = factor(is_nibrs))) +
   geom_bar(position = "stack",
            stat = "identity") +
