@@ -24,6 +24,7 @@ knitr::opts_chunk$set(echo = TRUE,
 # install.packages("dplyr")
 # install.packages("scales")
 # install.packages("ggpubr")
+# install.packages("tidyverse")
 ```
 
 
@@ -36,6 +37,7 @@ library(ggExtra)
 library(dplyr)
 library(scales)
 library(ggpubr)
+library(tidyverse)
 ```
 
 
@@ -51,13 +53,13 @@ agencies <- tidytuesdayR::tt_load(2025, week = 7)$agencies
 
 ## Bar Plots
 ```{r}
-par(mfrow = c(2,1))
-
+# histogram of latitudes
 lats <- ggplot(agencies, aes(x = latitude)) +
   geom_histogram(aes(y = ..count..), 
                  color = "black", 
-                 fill = "white",
-                 bins = 50) +
+                 fill = "red",
+                 bins = 50,
+                 alpha = 0.5) +
   geom_density(aes(y = ..density..),
                alpha = 0.4, 
                fill = "#FF6666") +
@@ -68,17 +70,17 @@ lats <- ggplot(agencies, aes(x = latitude)) +
        x = "Latitude",
        y = "Number of Agencies") +
   theme_classic() +
-  theme(panel.background = element_rect(fill = "black"),
-        panel.grid.major = element_line(colour = "red")) +
   scale_x_continuous(limits = c(20, 55))
 
 lats
 
+# histogram of longitudes
 longs <- ggplot(agencies, aes(x = longitude)) +
   geom_histogram(aes(y = ..count..),
                  color = "black", 
-                 fill = "white",
-                 bins = 50) +
+                 fill = "blue",
+                 bins = 50,
+                 alpha = 0.5) +
   geom_density(aes(y = ..density..),
                alpha = 0.4,
                fill = "#66A1FF") +
@@ -86,20 +88,69 @@ longs <- ggplot(agencies, aes(x = longitude)) +
              color = "red",
              linetype = "solid",
              ) +
+  scale_x_continuous(limits = c(-130, -60)) +
   labs(title = "Frequency of Longitudes",
        x = "Longitude",
        y = "Number of Agencies") +
-  theme_classic() +
-  theme(panel.background = element_rect(fill = "black"),
-        panel.grid.major = element_line(colour = "blue")) +
-  scale_x_continuous(limits = c(-130, -60))
+  theme_classic() 
 
 longs
+```
 
-ggarrange(lats, longs,
-          labels = c("1)", "2)"),
-          ncol = 2, 
-          nrow = 1)
+## More Complex Bars
+```{r}
+state_sum <- agencies %>% group_by(state_abbr, is_nibrs) %>% 
+  summarise(count = n()) %>% 
+  pivot_wider(names_from = is_nibrs, values_from = count) %>% 
+
+ggplot(data = agencies, aes(x = state_abbr, fill = factor(is_nibrs))) +
+  facet_wrap(vars(is_nibrs)) +
+  geom_bar() +
+  theme_minimal() +
+  labs(
+    title = "Bar Chart of States Count",
+    ylab = "Frequency",
+    fill = "States"
+  )
+
+ggplot(data = agencies, aes(x = state_abbr, fill = factor(is_nibrs))) +
+  geom_bar() +
+  theme_minimal() +
+  labs(
+    title = "Bar Chart of States Count",
+    ylab = "Frequency",
+    fill = "States"
+  )
+  
+ggplot(data = state_sum, aes(x = state_abbr, y = count, fill = factor(is_nibrs))) +
+  geom_bar(position = "dodge",
+           stat = "identity") +
+  theme_minimal() +
+  labs(
+    title = "Bar Chart of States Count",
+    ylab = "Frequency",
+    fill = "States"
+  )
+
+ggplot(data = state_sum, aes(x = state_abbr, y = count, fill = factor(is_nibrs))) +
+  geom_bar(position = "stack",
+           stat = "identity") +
+  theme_minimal() +
+  labs(
+    title = "Bar Chart of States Count",
+    ylab = "Frequency",
+    fill = "States"
+  )
+
+ggplot(data = state_sum, aes(x = state_abbr, y = count, fill = factor(is_nibrs))) +
+  geom_bar(position = "fill",
+           stat = "identity") +
+  theme_minimal() +
+  labs(
+    title = "Bar Chart of States Count",
+    ylab = "Frequency",
+    fill = "States"
+  )
 ```
 
 ## Scatter Plots
