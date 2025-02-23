@@ -30,6 +30,7 @@ knitr::opts_chunk$set(echo = TRUE,
 
 # Libraries
 ```{r}
+install.packages("tidytext")
 library(skimr)
 library(DataExplorer)
 library(ggplot2)
@@ -38,6 +39,7 @@ library(dplyr)
 library(scales)
 library(ggpubr)
 library(tidyverse)
+library(tidytext)
 ```
 
 
@@ -99,58 +101,59 @@ longs
 
 ## More Complex Bars
 ```{r}
-state_sum <- agencies %>% group_by(state_abbr, is_nibrs) %>% 
+long_state_sum <- agencies %>%  
+  group_by(state_abbr, is_nibrs) %>% 
   summarise(count = n()) %>% 
   pivot_wider(names_from = is_nibrs, values_from = count) %>% 
+  rename(True = "TRUE") %>% 
+  rename(False = "FALSE") 
 
-ggplot(data = agencies, aes(x = state_abbr, fill = factor(is_nibrs))) +
-  facet_wrap(vars(is_nibrs)) +
-  geom_bar() +
-  theme_minimal() +
-  labs(
-    title = "Bar Chart of States Count",
-    ylab = "Frequency",
-    fill = "States"
-  )
+state_sum_fct <- agencies %>% group_by(state_abbr, is_nibrs) %>% 
+  summarise(count = n()) %>%
+  ungroup() %>% 
+  mutate(state_abbr = reorder_within(state_abbr, count, is_nibrs))
 
-ggplot(data = agencies, aes(x = state_abbr, fill = factor(is_nibrs))) +
-  geom_bar() +
-  theme_minimal() +
-  labs(
-    title = "Bar Chart of States Count",
-    ylab = "Frequency",
-    fill = "States"
-  )
+state_sum <- agencies %>% group_by(state_abbr, is_nibrs) %>% 
+  summarise(count = n()) %>%
+  ungroup() 
   
-ggplot(data = state_sum, aes(x = state_abbr, y = count, fill = factor(is_nibrs))) +
+ggplot(data = state_sum_fct, aes(x = reorder(state_abbr, +count), y = count, fill = is_nibrs)) +
+  facet_wrap(~is_nibrs, scales = "free_y") +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  scale_x_reordered() +
+  theme_minimal() +
+  theme(axis.text.y = element_text(size = 5)) +
+  labs(
+    title = "Bar Chart of States Count",
+    ylab = "Frequency",
+    fill = "States"
+  )
+
+ggplot(data = state_sum, aes(x = reorder(state_abbr, +count), y = count, fill = is_nibrs)) +
   geom_bar(position = "dodge",
            stat = "identity") +
+  coord_flip() +
   theme_minimal() +
+  theme(axis.text.y = element_text(size = 5)) +
   labs(
     title = "Bar Chart of States Count",
     ylab = "Frequency",
     fill = "States"
   )
 
-ggplot(data = state_sum, aes(x = state_abbr, y = count, fill = factor(is_nibrs))) +
+ggplot(data = state_sum, aes(x = reorder(state_abbr, +count), y = count, fill = factor(is_nibrs))) +
   geom_bar(position = "stack",
            stat = "identity") +
+  coord_flip() +
   theme_minimal() +
+  theme(axis.text.y = element_text(size = 5)) +
   labs(
     title = "Bar Chart of States Count",
-    ylab = "Frequency",
-    fill = "States"
+    xlab = "Frequency",
+    fill = "NIBRS Status"
   )
 
-ggplot(data = state_sum, aes(x = state_abbr, y = count, fill = factor(is_nibrs))) +
-  geom_bar(position = "fill",
-           stat = "identity") +
-  theme_minimal() +
-  labs(
-    title = "Bar Chart of States Count",
-    ylab = "Frequency",
-    fill = "States"
-  )
 ```
 
 ## Scatter Plots
