@@ -1,11 +1,4 @@
----
-title: "FBI Crime Data (2022-02-18)"
-author: "Katherine Zeng"
-date: "2025-02-22"
-output: html_document
----
-
-```{r setup, include=FALSE}
+## ----setup, include=FALSE-----------------------------------------------------
 knitr::knit_hooks$set(purl = knitr::hook_purl)
 knitr::opts_chunk$set(echo = TRUE, 
                       results="hide", 
@@ -26,11 +19,8 @@ options(repos = r)
 # install.packages("scales")
 # install.packages("ggpubr")
 # install.packages("tidyverse")
-```
 
-
-# Libraries
-```{r}
+## -----------------------------------------------------------------------------
 install.packages("tidytext")
 library(skimr)
 library(DataExplorer)
@@ -41,21 +31,14 @@ library(scales)
 library(ggpubr)
 library(tidyverse)
 library(tidytext)
-```
 
-
-# Load and Clean Dataset
-```{r}
+## -----------------------------------------------------------------------------
 agencies <- tidytuesdayR::tt_load(2025, week = 7)$agencies
-```
 
-# Initial Exploration
-```{r}
+## -----------------------------------------------------------------------------
 # DataExplorer::create_report(agencies)
-```
 
-## Bar Plots
-```{r}
+## -----------------------------------------------------------------------------
 # histogram of latitudes
 lats <- ggplot(agencies, aes(x = latitude)) +
   geom_histogram(aes(y = ..count..), 
@@ -98,10 +81,8 @@ longs <- ggplot(agencies, aes(x = longitude)) +
   theme_classic() 
 
 longs
-```
 
-## More Complex Bars
-```{r}
+## -----------------------------------------------------------------------------
 long_state_sum <- agencies %>%  
   group_by(state_abbr, is_nibrs) %>% 
   summarise(count = n()) %>% 
@@ -158,7 +139,4 @@ ggplot(data = state_sum, aes(x = reorder(state_abbr, +count), y = count, fill = 
     fill = "NIBRS Status"
   )
 
-```
-
-## Scatter Plots
 
