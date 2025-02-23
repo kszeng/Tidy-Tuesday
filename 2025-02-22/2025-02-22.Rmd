@@ -26,12 +26,13 @@ options(repos = r)
 # install.packages("scales")
 # install.packages("ggpubr")
 # install.packages("tidyverse")
+# install.packages("tidytext")
+# install.packages("quarto")
 ```
 
 
 # Libraries
 ```{r}
-install.packages("tidytext")
 library(skimr)
 library(DataExplorer)
 library(ggplot2)
@@ -41,6 +42,7 @@ library(scales)
 library(ggpubr)
 library(tidyverse)
 library(tidytext)
+library(quarto)
 ```
 
 
@@ -160,5 +162,4 @@ ggplot(data = state_sum, aes(x = reorder(state_abbr, +count), y = count, fill = 
 
 ```
 
-## Scatter Plots
 
