@@ -19,9 +19,11 @@ options(repos = r)
 # install.packages("scales")
 # install.packages("ggpubr")
 # install.packages("tidyverse")
+# install.packages("tidytext")
+# install.packages("quarto")
+# install.packages("maps")
 
 ## -----------------------------------------------------------------------------
-install.packages("tidytext")
 library(skimr)
 library(DataExplorer)
 library(ggplot2)
@@ -31,6 +33,8 @@ library(scales)
 library(ggpubr)
 library(tidyverse)
 library(tidytext)
+library(quarto)
+library(maps)
 
 ## -----------------------------------------------------------------------------
 agencies <- tidytuesdayR::tt_load(2025, week = 7)$agencies
@@ -139,4 +143,44 @@ ggplot(data = state_sum, aes(x = reorder(state_abbr, +count), y = count, fill = 
     fill = "NIBRS Status"
   )
 
+
+## -----------------------------------------------------------------------------
+# install.packages("usmap")
+library(usmap)
+
+# create data frame for mapping
+usmap_df <- agencies %>% group_by(state_abbr) %>% 
+  summarise(value = n()) %>% 
+  rename("state" = "state_abbr")
+
+# plot all states of the U.S. to create an empty map
+plot_usmap(data = usmap_df, values = "value", regions = "states", color = "red") +
+  scale_fill_gradient2(low = "white", high = "red", name = "Number of Agencies", labels = scales::comma, breaks = c(250, 500, 750, 1000, 1250, 1500), limits = c(0, 1600))
+  labs(title = "Map of the U.S.",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(legend.position = "right",
+        legend.key.spacing.y = 5)
+
+## -----------------------------------------------------------------------------
+# subset USA data using maps library
+world_map <- map_data("world")
+usa_map <- subset(world_map, world_map$region == "USA")
+
+# create a base plot with ggplot2
+base_plot <- ggplot() +
+  coord_fixed() +
+  xlab("") +
+  ylab("")
+
+# add map to base plot
+base_world_messy <- base_plot +
+  geom_polygon(data = usa_map,
+               aes(x = long, y = lat, group = group),
+               colour = "light green", 
+               fill = "light green") +
+  xlim(c(-175, -60))
+
+base_world_messy
+
+# strip and clean world map
 
