@@ -201,7 +201,7 @@ plot_usmap(data = usmap_df, values = "value", regions = "states", color = "red")
 # zoom in on the two most represented states and plot by county
 fips_codes <- fips_codes %>% mutate(county = toupper(str_remove_all(county, pattern = " County")))
 
-agencies <- left_join(agencies, fips_codes, by = fips_codes$county)
+# agencies <- left_join(agencies, fips_codes, by = fips_codes$county)
 
 plot_usmap(regions = "counties") +
   labs(title = "U.S. Counties",

@@ -34,7 +34,6 @@ library(ggpubr)
 library(tidyverse)
 library(tidytext)
 library(quarto)
-library(maps)
 
 ## -----------------------------------------------------------------------------
 agencies <- tidytuesdayR::tt_load(2025, week = 7)$agencies
@@ -146,22 +145,48 @@ ggplot(data = state_sum, aes(x = reorder(state_abbr, +count), y = count, fill = 
 
 ## -----------------------------------------------------------------------------
 # install.packages("usmap")
+# install.packages("tigris")
+# install.packages("cdlTools")
 library(usmap)
+library(tigris)
+library(cdlTools)
 
-# create data frame for mapping
+# create data frame for mapping across states
 usmap_df <- agencies %>% group_by(state_abbr) %>% 
   summarise(value = n()) %>% 
   rename("state" = "state_abbr")
 
+# create data fram for mapping across counties
+counties_df <- agencies %>% group_by(county) %>% 
+  summarise(value = n()) %>% 
+  rename("fips" = "county")
+
 # plot all states of the U.S. to create an empty map
 plot_usmap(data = usmap_df, values = "value", regions = "states", color = "red") +
-  scale_fill_gradient2(low = "white", high = "red", name = "Number of Agencies", labels = scales::comma, breaks = c(250, 500, 750, 1000, 1250, 1500), limits = c(0, 1600))
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(250, 500, 750, 1000, 1250, 1500), 
+                       limits = c(0, 1600)) +
   labs(title = "Map of the U.S.",
        subtitle = "Distribution of FBI Agencies") +
   theme(legend.position = "right",
-        legend.key.spacing.y = 5)
+        panel.background = element_rect(fill = "dark red"))
+
+# zoom in on the two most represented states and plot by county
+fips_codes <- fips_codes %>% mutate(county = toupper(str_remove_all(county, pattern = " County")))
+
+# agencies <- left_join(agencies, fips_codes, by = fips_codes$county)
+
+plot_usmap(regions = "counties") +
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank())
 
 ## -----------------------------------------------------------------------------
+library(maps)
+
 # subset USA data using maps library
 world_map <- map_data("world")
 usa_map <- subset(world_map, world_map$region == "USA")
