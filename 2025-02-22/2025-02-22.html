@@ -519,7 +519,15 @@ plot_usmap(data = usmap_df, values = &quot;value&quot;, regions = &quot;states&q
 <pre class="r"><code># zoom in on the two most represented states and plot by county
 fips_codes &lt;- fips_codes %&gt;% mutate(county = toupper(str_remove_all(county, pattern = &quot; County&quot;)))
 
-# agencies &lt;- left_join(agencies, fips_codes, by = fips_codes$county)
+state_merge &lt;- merge(agencies, 
+                  unique(fips_codes %&gt;% select(state, state_code)),
+                  by.x = &quot;state_abbr&quot;, 
+                  by.y = &quot;state&quot;, 
+                  all.x = TRUE)
+  # merge(agencies,
+  #       unique(fips_codes %&gt;% select(county, county_code)),
+  #       by.x = &quot;county&quot;,
+  #       by.y = &quot;county&quot;)
 
 plot_usmap(regions = &quot;counties&quot;) +
   labs(title = &quot;U.S. Counties&quot;,
