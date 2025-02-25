@@ -174,46 +174,143 @@ plot_usmap(data = usmap_df, values = "value", regions = "states", color = "red")
   theme(legend.position = "right",
         panel.background = element_rect(fill = "dark red"))
 
+## -----------------------------------------------------------------------------
 # zoom in on the two most represented states and plot by county
 fips_codes <- fips_codes %>% mutate(county = toupper(str_remove_all(county, pattern = " County")))
 
+# create column containing FIPS codes for counties
 state_merge <- merge(agencies, 
                   unique(fips_codes %>% select(state, state_code)),
                   by.x = "state_abbr", 
                   by.y = "state", 
                   all.x = TRUE)
-  # merge(agencies,
-  #       unique(fips_codes %>% select(county, county_code)),
-  #       by.x = "county",
-  #       by.y = "county")
 
-plot_usmap(regions = "counties") +
+state_merge <- merge(state_merge,
+                     unique(fips_codes %>% select(county, county_code)),
+                     by.x = "county",
+                     by.y = "county")
+
+state_merge$fips <- paste(state_merge$state_code, state_merge$county_code, sep = "")
+
+state_merge <- state_merge[!duplicated(state_merge$agency_name),]
+
+# summarise by fips codes
+fips_counts <- state_merge %>% group_by(fips) %>% 
+  summarise(value = n()) %>% 
+  arrange(desc(value))
+
+# all counties (messy)
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", linewidth = 0.05) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(10, 20, 30, 40), 
+                       limits = c(0, 50)) + 
   labs(title = "U.S. Counties",
        subtitle = "Distribution of FBI Agencies") +
-  theme(panel.background = element_blank())
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", linewidth = 0.05) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(10, 20, 30, 40), 
+                       limits = c(0, 50)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+
+# texas
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("TX")) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(5, 10), 
+                       limits = c(0, 15)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+
+# pennsylvania 
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("CA")) +
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(10, 20, 30), 
+                       limits = c(0, 40)) +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
 
 ## -----------------------------------------------------------------------------
-library(maps)
+# northeast
+# connecticut, maine, massachusetts, new hampshire, rhode island, vermont,
+# new jersey, new york, pennsylvania
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("CT", "ME", "MA", "NH", "RI", "VT", "NJ", "NY", "PA"), linewidth = 0.3) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(10, 20, 30, 40, 50), 
+                       limits = c(0, 60)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
 
-# subset USA data using maps library
-world_map <- map_data("world")
-usa_map <- subset(world_map, world_map$region == "USA")
+# midwest
+# illinios, indiana, michigan, ohio, wisconsin,
+# iowa, kansas, minnesota, missouri, nebraska, north/south dakota
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("IL", "IN", "MI", "OH", "WI", "IA", "KS", "MN", "MO", "NE", "SD", "ND"), linewidth = 0.3) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(5, 10, 15, 20), 
+                       limits = c(0, 25)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
 
-# create a base plot with ggplot2
-base_plot <- ggplot() +
-  coord_fixed() +
-  xlab("") +
-  ylab("")
+# south
+# florida, georgia, north carolina, south carolina, virginia, maryland, delaware, west virginia,
+# alabama, kentucky, mississippi, tennessee,
+# arkansas, louisiana, oklahoma, texas
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("FL", "GA", "NC", "SC", "VA", "MD", "DE", 
+            "DC", "WV", "AL", "KY", "MS", "TN",
+            "AR", "LA", "OK", "TX"), linewidth = 0.2) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(5, 10, 15), 
+                       limits = c(0, 20)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
 
-# add map to base plot
-base_world_messy <- base_plot +
-  geom_polygon(data = usa_map,
-               aes(x = long, y = lat, group = group),
-               colour = "light green", 
-               fill = "light green") +
-  xlim(c(-175, -60))
-
-base_world_messy
-
-# strip and clean world map
+# west
+# arizona, colorado, idaho, montana, nevada, new mexico, utah, wyoming,
+# alaska, california, hawaii, oregon, washington
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("AZ", "CO", "ID", "MT", "NV", "NM", "UT", "WY", "AK", "CA", "HI", "OR", "WA"), linewidth = 0.2) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(5, 10), 
+                       limits = c(0, 15)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
 
