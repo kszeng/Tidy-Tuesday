@@ -1,27 +1,111 @@
 ---
 title: "FBI Crime Data Challenge"
-author: "Katherine Zeng"
-format: html
-editor: visual
+format: 
+  dashboard:
+    orientation: columns
+    nav-buttons: [github]
+    github: https://github.com/kszeng/Tidy-Tuesday
+logo: images/US-FBI-BWSeal.svg
+logo-alt: FBI logo black and white
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
 ```{r}
-1 + 1
+#===SETUP===
+
+# load libraries
+library(skimr)
+library(DataExplorer)
+library(ggplot2)
+library(ggExtra)
+library(dplyr)
+library(scales)
+library(ggpubr)
+library(tidyverse)
+library(tidytext)
+library(quarto)
+
+# load and clean original dataset
+agencies <- tidytuesdayR::tt_load(2025, week = 7)$agencies
+
+# ---us-level map: data wrangling---
+library(usmap)
+library(tigris)
+library(cdlTools)
+
+# create data frame for mapping across states
+usmap_df <- agencies %>% group_by(state_abbr) %>% 
+  summarise(value = n()) %>% 
+  rename("state" = "state_abbr")
+
+# create data fram for mapping across counties
+counties_df <- agencies %>% group_by(county) %>% 
+  summarise(value = n()) %>% 
+  rename("fips" = "county")
+
+# ---county-level map: data wrangling---
+
+# zoom in on the two most represented states and plot by county
+fips_codes <- fips_codes %>% mutate(county = toupper(str_remove_all(county, pattern = " County")))
+
+# create column containing FIPS codes for counties
+state_merge <- merge(agencies, 
+                  unique(fips_codes %>% select(state, state_code)),
+                  by.x = "state_abbr", 
+                  by.y = "state", 
+                  all.x = TRUE)
+
+state_merge <- merge(state_merge,
+                     unique(fips_codes %>% select(county, county_code)),
+                     by.x = "county",
+                     by.y = "county")
+
+state_merge$fips <- paste(state_merge$state_code, state_merge$county_code, sep = "")
+
+state_merge <- state_merge[!duplicated(state_merge$agency_name),]
+
+# summarise by fips codes
+fips_counts <- state_merge %>% group_by(fips) %>% 
+  summarise(value = n()) %>% 
+  arrange(desc(value))
 ```
 
-You can add options to executable code like this
-
+## 
 ```{r}
-#| echo: false
-2 * 2
+#| title: Distribution of Crime Reports Across the U.S.
+# plot all states of the U.S. to create an empty map
+plot_usmap(data = usmap_df, values = "value", regions = "states", color = "red") +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(250, 500, 750, 1000, 1250, 1500), 
+                       limits = c(0, 1600)) +
+  labs(title = "Map of the U.S.",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(legend.position = "right",
+        panel.background = element_rect(fill = "dark red"))
+
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+##
+```{r}
+#| title: Distribution of Crime Reports by County
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", linewidth = 0.05) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(5, 10), 
+                       limits = c(0, 15)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+```
+
+```{r}
+#| title: Drive types
+ggplot(mpg, aes(x = drv)) +
+  geom_bar()
+```
+
