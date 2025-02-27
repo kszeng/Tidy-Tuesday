@@ -1,0 +1,157 @@
+---
+title: "OBGYN Disparities in the US"
+author: "Katherine Zeng"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+r = getOption("repos")
+r = getOption("repos")
+r["CRAN"] = "http://cran.us.r-project.org"
+options(repos = r)
+
+# install.packages("ggalt")
+# install.packages("hrbrthemes")
+# install.packages("viridis")
+# install.packages("devtools")
+# devtools::install_github("hrbrmstr/streamgraph")
+# install.packages("htmlwidgets")
+
+library(ggalt)
+library(hrbrthemes)
+library(viridis)
+library(skimr)
+library(DataExplorer)
+library(ggplot2)
+library(ggExtra)
+library(dplyr)
+library(scales)
+library(ggpubr)
+library(tidyverse)
+library(tidytext)
+library(quarto)
+library(devtools)
+library(streamgraph)
+library(htmlwidgets)
+```
+
+# Load and clean the dataset
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2025, week = 8)
+article_dat <- tuesdata$article_dat
+model_dat <- tuesdata$model_dat
+```
+
+# Data Wrangling
+```{r}
+# create column of durations 
+time_dat <- article_dat %>% mutate(duration = study_year_end - study_year_start) %>% 
+  filter(study_year_end != -99 & study_year_start != 99) %>% 
+  mutate(study_type = tolower(study_type))
+
+# create df of only study focus areas
+topic_dat <- article_dat %>% select(access_to_care:covid) %>% 
+  pivot_longer(cols = everything(), names_to = "topic", values_to = "value") %>% 
+  group_by(topic) %>% 
+  summarise(total = sum(value, na.rm = T)) %>% 
+  arrange(desc(total))
+```
+
+# Article Analysis
+
+## Initial Exploration
+
+  Notes: 
+  * retrospective cohorts are the most popular study type by far
+  * top study topics areas:
+    * health outcomes
+    * treatment received
+    * access to care
+    * maternal morbidity and mortality
+    * uterine cancer
+  
+```{r}
+# stacked histogram of studies by study type
+ggplot(time_dat, aes(x = duration, fill = study_type, groups = study_type)) +
+  xlim(0, 45) +
+  geom_histogram(na.rm = T) 
+
+# simple bar chart of topics addressed
+ggplot(topic_dat, aes(x = reorder(topic, -total), y = total)) +
+  geom_bar(stat = "identity") +
+  ylim(0, 200) +
+  theme(axis.text.x = element_text(angle = 45))
+```
+
+```{r}
+# plot timeline as series of line segments
+time_dat %>% ggplot(aes(x = study_type, y = duration, fill = study_type)) +
+  geom_violin(outlier.colour = "transparent", width = 1) +
+  geom_boxplot(color = "grey", alpha = 0.2, width = 0.1) +
+  scale_fill_viridis(discrete = T, name = "") +
+  theme_ipsum() +
+  xlab("") +
+  ylab("Study Duration (Years)") +
+  ylim(0, 25) +
+  theme(axis.text.x = element_blank())
+```
+
+## keyword analysis
+
+```{r}
+# guide from r-graph-gallery.com
+
+# create 3 columns needed for the plot
+keywords <- article_dat %>% separate_rows(keywords, sep = "; ") %>% 
+  separate_rows(keywords, sep = ", ") %>% 
+  mutate(keywords = tolower(keywords)) %>% 
+  group_by(year, keywords) %>% 
+  summarise(count = n())
+
+# simple raw graph - many different words every year!
+streamgraph(keywords, key = "keywords", value = "count", date = "year", height = "300px", width = "1000px", offset = "expand") %>% 
+  sg_fill_brewer("PuOr")
+
+# narrow it down by top 50 of each year
+keywords %>% group_by(year) %>% 
+  arrange(desc(count), .by_group = T) %>% 
+  top_n(50) %>% streamgraph(key = "keywords", value = "count", date = "year", height = "300px", width = "1000px", interpolate = "linear", offset = "expand") %>% 
+  sg_fill_brewer("PuOr")
+
+# narrow it down by top 20 of each year
+keywords %>% group_by(year) %>% 
+  arrange(desc(count), .by_group = T) %>% 
+  top_n(20) %>% streamgraph(key = "keywords", value = "count", date = "year", height = "300px", width = "1000px", offset = "zero") %>% 
+  sg_fill_brewer("PuOr")
+
+# narrow it down by top 10 of each year
+keywords %>% group_by(year) %>% 
+  arrange(desc(count), .by_group = T) %>% 
+  top_n(10) %>% streamgraph(key = "keywords", value = "count", date = "year", height = "300px", width = "1000px", offset = "zero") %>% 
+  sg_fill_brewer("PuOr")
+```
+
+## keywords continued - factored by other variables
+
+```{r}
+# breakdown of keywords by journal
+journal_facet <- article_dat %>% separate_rows(keywords, sep = "; ") %>% 
+  separate_rows(keywords, sep = ", ") %>% 
+  mutate(keywords = tolower(keywords)) %>% 
+  group_by(year, journal, keywords) %>% 
+  summarise(count = n())
+
+
+for (j in unique(journal_facet$journal)) {
+  img <- journal_facet %>% filter("journal" == j) %>% 
+    group_by(year) %>% 
+    arrange(desc(count), .by_group = T) %>% 
+    top_n(10) %>% streamgraph(key = "keywords", value = "count", date = "year", height = "300px", width = "1000px", offset = "zero") %>% 
+    sg_fill_brewer("PuOr")
+}
+```
+
+# Model Analysis
