@@ -1,9 +1,10 @@
 ---
-title: "FBI Crime Data Challenge"
+title: FBI Crime Data Challenge
 format: 
   dashboard:
-    orientation: columns
+    orientation: rows
     nav-buttons: [github]
+    theme: lux
     github: https://github.com/kszeng/Tidy-Tuesday
 logo: images/US-FBI-BWSeal.svg
 logo-alt: FBI logo black and white
@@ -11,6 +12,13 @@ logo-alt: FBI logo black and white
 
 ```{r}
 #===SETUP===
+
+r = getOption("repos")
+r = getOption("repos")
+r["CRAN"] = "http://cran.us.r-project.org"
+options(repos = r)
+
+# install.packages("bsicons")
 
 # load libraries
 library(skimr)
@@ -23,6 +31,7 @@ library(ggpubr)
 library(tidyverse)
 library(tidytext)
 library(quarto)
+library(bsicons)
 
 # load and clean original dataset
 agencies <- tidytuesdayR::tt_load(2025, week = 7)$agencies
@@ -68,10 +77,47 @@ fips_counts <- state_merge %>% group_by(fips) %>%
   summarise(value = n()) %>% 
   arrange(desc(value))
 ```
-
-## 
 ```{r}
-#| title: Distribution of Crime Reports Across the U.S.
+# calculate values for value boxes
+
+num_agencies <- length(unique(agencies[["agency_name"]]))
+
+nibrs_prop <- as.integer(sum(agencies$is_nibrs, na.rm = T)/nrow(agencies) * 100)
+```
+
+# Overview
+
+## Row - Value boxes {height=20%}
+
+:::{.valuebox icon="buildings" color="danger"}
+Number of FBI Agencies
+
+`{r} num_agencies`
+:::
+
+:::{.valuebox icon="percent" color="danger"}
+NIBRS Status
+
+`{r} paste(nibrs_prop)`
+:::
+
+:::{.valuebox icon="buildings" color="danger"}
+Number of FBI Agencies
+
+`{r} num_agencies`
+:::
+
+:::{.valuebox icon="buildings" color="danger"}
+Number of FBI Agencies
+
+`{r} num_agencies`
+:::
+
+## Row {height=80%}
+
+### Column {width=50%}
+```{r}
+#| title: Distribution by State
 # plot all states of the U.S. to create an empty map
 plot_usmap(data = usmap_df, values = "value", regions = "states", color = "red") +
   scale_fill_gradient2(low = "white", 
@@ -82,15 +128,104 @@ plot_usmap(data = usmap_df, values = "value", regions = "states", color = "red")
                        limits = c(0, 1600)) +
   labs(title = "Map of the U.S.",
        subtitle = "Distribution of FBI Agencies") +
-  theme(legend.position = "right",
-        panel.background = element_rect(fill = "dark red"))
+  theme(legend.position = "right")
 
 ```
 
-##
+### Column {widght=50%}
+
 ```{r}
-#| title: Distribution of Crime Reports by County
+#| title: Distribution by County
 plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", linewidth = 0.05) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(10, 20, 30), 
+                       limits = c(0, 40)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+
+```
+
+# By Region
+
+### Row {.tabset}
+
+```{r}
+#| title: New England
+
+# northeast
+# connecticut, maine, massachusetts, new hampshire, rhode island, vermont,
+# new jersey, new york, pennsylvania
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("CT", "ME", "MA", "NH", "RI", "VT"), linewidth = 0.3) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(10, 20, 30, 40, 50), 
+                       limits = c(0, 60)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+```
+
+```{r}
+#| title: Middle Atlantic
+
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("NJ", "NY", "PA"), linewidth = 0.3) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(10, 20, 30, 40, 50), 
+                       limits = c(0, 60)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+```
+
+```{r}
+#| title: East North Central Midwest
+
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("IL", "IN", "MI", "OH", "WI"), linewidth = 0.3) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(5, 10, 15, 20), 
+                       limits = c(0, 25)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+```
+
+```{r}
+#| title: West North Central Midwest
+
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("IA", "KS", "MN", "MO", "NE", "SD", "ND"), linewidth = 0.3) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(5, 10, 15), 
+                       limits = c(0, 20)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+```
+
+```{r}
+#| title: Atlantic South
+
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("FL", "GA", "NC", "SC", "VA", "MD", "DE", 
+            "DC", "WV"), linewidth = 0.2) +
   scale_fill_gradient2(low = "white", 
                        high = "red", 
                        name = "Number of Agencies", 
@@ -104,8 +239,50 @@ plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "
 ```
 
 ```{r}
-#| title: Drive types
-ggplot(mpg, aes(x = drv)) +
-  geom_bar()
+#| title: Central South
+
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("AL", "KY", "MS", "TN",
+            "AR", "LA", "OK", "TX"), linewidth = 0.2) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(5, 10), 
+                       limits = c(0, 15)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
 ```
 
+```{r}
+#| title: Mountain West
+
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("AZ", "CO", "ID", "MT", "NV", "NM", "UT", "WY"), linewidth = 0.2) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(5, 10), 
+                       limits = c(0, 15)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+```
+
+```{r}
+#| title: Pacific West
+
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("AK", "CA", "HI", "OR", "WA"), linewidth = 0.2) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(5, 10), 
+                       limits = c(0, 15)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+```

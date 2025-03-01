@@ -287,9 +287,24 @@ plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "
 
 ```{r}
 # northeast
-# connecticut, maine, massachusetts, new hampshire, rhode island, vermont,
-# new jersey, new york, pennsylvania
-plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("CT", "ME", "MA", "NH", "RI", "VT", "NJ", "NY", "PA"), linewidth = 0.3) +
+# new england: connecticut, maine, massachusetts, new hampshire, rhode island, vermont,
+# middle atlantic:new jersey, new york, pennsylvania
+
+# new england
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("CT", "ME", "MA", "NH", "RI", "VT"), linewidth = 0.3) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(10, 20, 30, 40, 50), 
+                       limits = c(0, 60)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+
+# middle atlantic
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("NJ", "NY", "PA"), linewidth = 0.3) +
   scale_fill_gradient2(low = "white", 
                        high = "red", 
                        name = "Number of Agencies", 
@@ -302,9 +317,11 @@ plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "
         legend.position = "right")
 
 # midwest
-# illinios, indiana, michigan, ohio, wisconsin,
-# iowa, kansas, minnesota, missouri, nebraska, north/south dakota
-plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("IL", "IN", "MI", "OH", "WI", "IA", "KS", "MN", "MO", "NE", "SD", "ND"), linewidth = 0.3) +
+# east north central: illinios, indiana, michigan, ohio, wisconsin,
+# west north central: iowa, kansas, minnesota, missouri, nebraska, north/south dakota
+
+# east north central
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("IL", "IN", "MI", "OH", "WI"), linewidth = 0.3) +
   scale_fill_gradient2(low = "white", 
                        high = "red", 
                        name = "Number of Agencies", 
@@ -316,13 +333,8 @@ plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "
   theme(panel.background = element_blank(),
         legend.position = "right")
 
-# south
-# florida, georgia, north carolina, south carolina, virginia, maryland, delaware, west virginia,
-# alabama, kentucky, mississippi, tennessee,
-# arkansas, louisiana, oklahoma, texas
-plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("FL", "GA", "NC", "SC", "VA", "MD", "DE", 
-            "DC", "WV", "AL", "KY", "MS", "TN",
-            "AR", "LA", "OK", "TX"), linewidth = 0.2) +
+# west north central
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("IA", "KS", "MN", "MO", "NE", "SD", "ND"), linewidth = 0.3) +
   scale_fill_gradient2(low = "white", 
                        high = "red", 
                        name = "Number of Agencies", 
@@ -334,10 +346,58 @@ plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "
   theme(panel.background = element_blank(),
         legend.position = "right")
 
+# south
+# south atlantic: florida, georgia, north carolina, south carolina, virginia, maryland, delaware, west virginia
+# central south: alabama, kentucky, mississippi, tennessee,
+# arkansas, louisiana, oklahoma, texa
+
+# south atlantic
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("FL", "GA", "NC", "SC", "VA", "MD", "DE", 
+            "DC", "WV"), linewidth = 0.2) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(5, 10), 
+                       limits = c(0, 15)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+
+# south central
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("AL", "KY", "MS", "TN",
+            "AR", "LA", "OK", "TX"), linewidth = 0.2) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(5, 10), 
+                       limits = c(0, 15)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+
 # west
-# arizona, colorado, idaho, montana, nevada, new mexico, utah, wyoming,
-# alaska, california, hawaii, oregon, washington
-plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("AZ", "CO", "ID", "MT", "NV", "NM", "UT", "WY", "AK", "CA", "HI", "OR", "WA"), linewidth = 0.2) +
+# mountain: arizona, colorado, idaho, montana, nevada, new mexico, utah, wyoming,
+# pacific: alaska, california, hawaii, oregon, washington
+
+# mountain
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("AZ", "CO", "ID", "MT", "NV", "NM", "UT", "WY"), linewidth = 0.2) +
+  scale_fill_gradient2(low = "white", 
+                       high = "red", 
+                       name = "Number of Agencies", 
+                       labels = scales::comma, 
+                       breaks = c(5, 10), 
+                       limits = c(0, 15)) + 
+  labs(title = "U.S. Counties",
+       subtitle = "Distribution of FBI Agencies") +
+  theme(panel.background = element_blank(),
+        legend.position = "right")
+
+# pacific 
+plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", include = c("AK", "CA", "HI", "OR", "WA"), linewidth = 0.2) +
   scale_fill_gradient2(low = "white", 
                        high = "red", 
                        name = "Number of Agencies", 
