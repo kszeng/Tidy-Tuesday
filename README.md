@@ -13,7 +13,6 @@ My contributions to the `TidyTuesday` weekly data project! All datasets can be f
 See the full Quarto dashboard here: https://kszeng.quarto.pub/fbi-crime-data-challenge/
 
 ![fbi_photo1](https://github.com/kszeng/Tidy-Tuesday/blob/2611be5448cafdde4d7cb9891681163e125e93a0/images/fbi_quarto_1.png)
-![fbi_photo2](https://github.com/kszeng/Tidy-Tuesday/blob/2611be5448cafdde4d7cb9891681163e125e93a0/images/fbi_quarto_2.png)
 
 ## 2. Racial/Ethnic Disparities in Reproductive Medicine 
 
