@@ -87,7 +87,7 @@ ggplot(topic_dat, aes(x = reorder(topic, -total), y = total)) +
 ```
 
 ```{r}
-# plot timeline as series of line segments
+# exploratory violin plot
 time_dat %>% ggplot(aes(x = study_type, y = duration, fill = study_type)) +
   geom_violin(outlier.colour = "transparent", width = 1) +
   geom_boxplot(color = "grey", alpha = 0.2, width = 0.1) +
@@ -143,6 +143,8 @@ journal_facet <- article_dat %>% separate_rows(keywords, sep = "; ") %>%
   mutate(keywords = tolower(keywords)) %>% 
   group_by(year, journal, keywords) %>% 
   summarise(count = n())
+
+journal_facet
 
 
 for (j in unique(journal_facet$journal)) {

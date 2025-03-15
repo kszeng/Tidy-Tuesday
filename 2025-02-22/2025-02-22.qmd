@@ -11,6 +11,19 @@ logo-alt: FBI logo black and white
 ---
 
 ```{r}
+knit_print.integer = function(x, ...) {
+  prettyNum(x, big.mark=",")
+}
+
+registerS3method(
+  "knit_print", "integer", knit_print.integer,
+  envir = asNamespace("knitr")
+)
+
+
+```
+
+```{r}
 #===SETUP===
 
 r = getOption("repos")
@@ -76,13 +89,24 @@ state_merge <- state_merge[!duplicated(state_merge$agency_name),]
 fips_counts <- state_merge %>% group_by(fips) %>% 
   summarise(value = n()) %>% 
   arrange(desc(value))
+
+
 ```
 ```{r}
 # calculate values for value boxes
 
+# total participating agencies across the U.S
 num_agencies <- length(unique(agencies[["agency_name"]]))
 
+# proportion NIBRS participation
 nibrs_prop <- as.integer(sum(agencies$is_nibrs, na.rm = T)/nrow(agencies) * 100)
+
+# count number of counties that participate
+county_count <- length(unique(agencies$county))
+
+# average number of agencies per state
+state_avg <- as.integer(length(unique(agencies$agency_name))/length(unique(agencies$state)))
+
 ```
 
 # Overview
@@ -90,34 +114,34 @@ nibrs_prop <- as.integer(sum(agencies$is_nibrs, na.rm = T)/nrow(agencies) * 100)
 ## Row - Value boxes {height=20%}
 
 :::{.valuebox icon="buildings" color="danger"}
-Number of FBI Agencies
+Number of Agencies
 
 `{r} num_agencies`
 :::
 
-:::{.valuebox icon="percent" color="danger"}
-NIBRS Status
+:::{.valuebox icon="percent" color="dark"}
+National NIBRS Participation
 
 `{r} paste(nibrs_prop)`
 :::
 
 :::{.valuebox icon="buildings" color="danger"}
-Number of FBI Agencies
+Participating Counties
 
-`{r} num_agencies`
+`{r} county_count`
 :::
 
-:::{.valuebox icon="buildings" color="danger"}
-Number of FBI Agencies
+:::{.valuebox icon="buildings" color="dark"}
+Average Agencies per State
 
-`{r} num_agencies`
+`{r} state_avg`
 :::
 
 ## Row {height=80%}
 
-### Column {width=50%}
+### Column {.tabset width=60%}
 ```{r}
-#| title: Distribution by State
+#| title: By State
 # plot all states of the U.S. to create an empty map
 plot_usmap(data = usmap_df, values = "value", regions = "states", color = "red") +
   scale_fill_gradient2(low = "white", 
@@ -126,16 +150,14 @@ plot_usmap(data = usmap_df, values = "value", regions = "states", color = "red")
                        labels = scales::comma, 
                        breaks = c(250, 500, 750, 1000, 1250, 1500), 
                        limits = c(0, 1600)) +
-  labs(title = "Map of the U.S.",
-       subtitle = "Distribution of FBI Agencies") +
+  labs(title = "U.S. States",
+       subtitle = "Distribution of Law Enforcement Agencies") +
   theme(legend.position = "right")
 
 ```
 
-### Column {widght=50%}
-
 ```{r}
-#| title: Distribution by County
+#| title: By County
 plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "red", linewidth = 0.05) +
   scale_fill_gradient2(low = "white", 
                        high = "red", 
@@ -144,15 +166,36 @@ plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "
                        breaks = c(10, 20, 30), 
                        limits = c(0, 40)) + 
   labs(title = "U.S. Counties",
-       subtitle = "Distribution of FBI Agencies") +
+       subtitle = "Distribution of Law Enforcement Agencies") +
   theme(panel.background = element_blank(),
         legend.position = "right")
 
 ```
 
+### Column {width=40%}
+
+```{r}
+#| label: tbl-types
+#| tbl-cap: "Agency Types"
+#| tbl-colwidths: [60, 40]
+
+# number of each type of agency
+type_summ <- agencies %>% filter(!(is.na(agency_type))) %>% 
+  group_by(agency_type) %>% 
+  summarise(count = n()) %>% 
+  mutate(Frequency = paste(as.integer(count / sum(count) * 100), "%", sep = "")) %>% 
+  rename("Agency Type" = agency_type,
+         "Count" = count) %>% 
+  arrange(desc(Count))
+
+knitr::kable(type_summ, align = "c")
+```
+
 # By Region
 
-### Row {.tabset}
+## Row {}
+
+### Column {.tabset width=70%}
 
 ```{r}
 #| title: New England
@@ -285,4 +328,21 @@ plot_usmap(data = fips_counts, values = "value", regions = "counties", color = "
        subtitle = "Distribution of FBI Agencies") +
   theme(panel.background = element_blank(),
         legend.position = "right")
+```
+
+### Column {width=30%}
+
+```{r}
+#| label: tbl-states
+#| tbl-cap: "Summary by State"
+#| tbl-colwidths: [60, 40]
+
+state_summ <- agencies %>% filter(!is.na(agency_type)) %>% 
+  group_by(state) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = paste(as.integer(Count / sum(Count) * 100), "%", sep = "")) %>% 
+  rename("State" = state) %>% 
+  arrange(desc(Count))
+
+knitr::kable(state_summ, align = "c")
 ```

@@ -1,0 +1,107 @@
+---
+title: "2025-03-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::knit_hooks$set(purl = knitr::hook_purl)
+knitr::opts_chunk$set(echo = TRUE)
+
+r = getOption("repos")
+r["CRAN"] = "http://cran.us.r-project.org"
+options(repos = r)
+
+# install.packages("ggalt")
+# install.packages("hrbrthemes")
+# install.packages("viridis")
+# install.packages("devtools")
+# devtools::install_github("hrbrmstr/streamgraph")
+# install.packages("htmlwidgets")
+# install.packages("ggstream")
+
+library(ggplot2)
+library(ggalt)
+library(hrbrthemes)
+library(viridis)
+library(skimr)
+library(DataExplorer)
+library(ggplot2)
+library(ggExtra)
+library(dplyr)
+library(scales)
+library(ggpubr)
+library(tidyverse)
+library(tidytext)
+library(quarto)
+library(devtools)
+library(streamgraph)
+library(htmlwidgets)
+library(ggstream)
+```
+
+# load and clean dataset
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2025, week = 9)
+longbeach <- tuesdata$longbeach
+```
+
+# explore the data
+
+```{r}
+# data summaries
+longbeach %>% group_by(animal_type) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count))
+
+longbeach %>% group_by(intake_condition) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count))
+
+longbeach %>% group_by(animal_type, outcome_type) %>% 
+  summarise(count = n()) %>% 
+  pivot_wider(names_from = outcome_type, values_from = count)
+
+longbeach %>% group_by(animal_type, was_outcome_alive) %>% 
+  summarise(count = n()) %>% 
+  pivot_wider(names_from = "was_outcome_alive", values_from = "count") %>% 
+  rename(alive = "TRUE",
+         dead = "FALSE")
+
+longbeach %>% group_by(intake_date, animal_type) %>% 
+  summarise(count = n()) %>% 
+  pivot_wider(names_from = animal_type, values_from = count)
+
+# simple bar charts
+
+longbeach %>% filter(animal_type == "cat" | animal_type == "dog") %>% 
+  ggplot(longbeach, aes(x = was_outcome_alive, fill = animal_type)) +
+  geom_bar() 
+
+```
+
+## testing ggstream
+```{r}
+blockbusters
+
+ggplot(blockbusters, aes(x = year, y = box_office, fill = genre)) +
+  geom_stream()
+```
+
+## time series data
+```{r}
+time_series <- longbeach %>% mutate(intake_year = as.double(format(intake_date, "%Y"))) %>% 
+  group_by(intake_date, animal_type) %>% 
+  summarise(count = n(), .groups = "drop")
+  # pivot_wider(names_from = animal_type, values_from = count)
+
+time_series <- as_tibble(time_series)
+
+ggplot(time_series %>% filter(animal_type != "cat" | animal_type != "dog"), aes(x = intake_date, y = count, color = animal_type)) +
+  geom_line() +
+  scale_x_date(limit=c(as.Date("2017-01-01"),as.Date("2018-01-01"))) +
+  xlab("")
+
+# ggplot(time_series, aes(x = intake_date, y = count, fill = animal_type)) + 
+  # geom_stream() 
+```
