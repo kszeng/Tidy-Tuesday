@@ -19,6 +19,7 @@ options(repos = r)
 # install.packages("devtools")
 # devtools::install_github("hrbrmstr/streamgraph")
 # install.packages("htmlwidgets")
+install.packages("ggstream")
 
 library(ggalt)
 library(hrbrthemes)
@@ -36,6 +37,7 @@ library(quarto)
 library(devtools)
 library(streamgraph)
 library(htmlwidgets)
+library(ggstream)
 ```
 
 # Load and clean the dataset
@@ -134,6 +136,31 @@ keywords %>% group_by(year) %>%
   sg_fill_brewer("PuOr")
 ```
 
+
+## top 20 streamgraph - variations
+```{r}
+# starting point
+keywords %>% group_by(year) %>% 
+  arrange(desc(count), .by_group = T) %>% 
+  top_n(20) %>% streamgraph(key = "keywords", value = "count", date = "year", height = "300px", width = "1000px", offset = "zero") %>% 
+  sg_fill_brewer("PuOr")
+
+# non interactive
+# narrow it down by top 20 of each year
+keywords %>% group_by(year) %>% 
+  arrange(desc(count), .by_group = T) %>% 
+  top_n(20) %>% streamgraph(key = "keywords", value = "count", date = "year", height = "300px", width = "1000px", offset = "zero", interactive = FALSE) %>% 
+  sg_fill_brewer("PuOr")
+
+# interpolate
+keywords %>% group_by(year) %>% 
+  arrange(desc(count), .by_group = T) %>% 
+  top_n(20) %>% streamgraph(key = "keywords", value = "count", date = "year", height = "300px", width = "1000px", offset = "zero", interactive = FALSE, interpolate = "cardinal") %>%
+  sg_fill_brewer("PuOr")
+
+keywords
+```
+
 ## keywords continued - factored by other variables
 
 ```{r}
@@ -156,4 +183,13 @@ for (j in unique(journal_facet$journal)) {
 }
 ```
 
-# Model Analysis
+# Streamgraphs using ggstream 
+
+```{r}
+keywords %>% group_by(year) %>% 
+  arrange(desc(count), .by_group = T) %>% 
+  top_n(10) %>%
+  ggplot(aes(x = year, y = count, fill = keywords)) +
+  geom_stream(type = "ridge", show.legend = FALSE, na.rm = TRUE, sorting = "onset") + 
+  geom_stream_label(aes(label = keywords)) 
+```
